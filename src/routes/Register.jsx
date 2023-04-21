@@ -1,7 +1,9 @@
 import { useContext, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
+import CodeError from "../components/CodeError"
 import { UserContext } from "../context/UserProvider"
+import { erroresFirebase } from "../utils/erroresFirebase"
 
 const Register = () => {
 
@@ -13,6 +15,7 @@ const Register = () => {
     const { registerUser } = useContext(UserContext)
 
     const { register, handleSubmit, getValues, setError, formState: { errors } } = useForm({
+
         defaultValues:{
             email: "prueba@prueba.com",
             password: "123123",
@@ -22,22 +25,16 @@ const Register = () => {
 
 
 
-    const onSubmit = async ({ email, password }) => {
+    const onSubmit = async ({ email, password }) => {  // accion del formulario
         try {
             await registerUser(email, password)
             console.log("exitoso");
             navigate("/login")
         } catch (error) {
             console.log(error.code);
-            if (error.code === 'auth/email-already-in-use')
-                //console.log("Ya esta registrado este correo");
-                setError("email", {
-                    message: "usuario ya existe"
-                })
-
-            if (error.code === 'auth/invalid-email')
             setError("email", {
-                message: "Formato email no valido"
+                message: erroresFirebase(error.code),
+
             })
         }
 
@@ -48,6 +45,7 @@ const Register = () => {
     return (
         <>
             <h1>Register</h1>
+                        
             <form onSubmit={handleSubmit(onSubmit)}>
                 <input
                     type="email"
@@ -67,15 +65,15 @@ const Register = () => {
                 //  onChange={(e) => setEmail(e.target.value)}
                 //  name={email}
                 />
-
-                {errors.email && <p>{errors.email.message}</p>}
+                {/* {errors.email && <p>{errors.email.message}</p>} */}
+                  <CodeError error={errors.email}/>
                 <input
                     type="password"
                     placeholder="ingrese password"
                     {...register("password", {
-                        minLength: {
-                            setValuesAs: (v) => v.trim(),  //esto boras los espacios en blanco
-                            value: 6,
+                     //   setValuesAs: (v) => v.trim(),  //esto boras los espacios en blanco
+                        minLength: {    
+                        value: 6,
                             message: "Minimo 6 caracteres"
                         },
                         validate: {   // validacion
@@ -92,15 +90,18 @@ const Register = () => {
                 //    name={password}
                 />
 
-                {errors.password && errors.password.message}
+                {/* {errors.password && errors.password.message} */}
+                <CodeError error={errors.password}/>
 
                 <input
                     type="password"
                     placeholder="ingrese password"
                     {...register("repassword", {
-                        setValuesAs: (v) => v.trim(),
+                     //   setValuesAs: (v) => v.trim(),
                         validate: {
-                            equals: v => v === getValues("password") || "No coinciden las contraseñas",  // trae getValues del metodo useForms
+                            equals: v => 
+                            v === getValues("password") ||
+                             "No coinciden las contraseñas",  // trae getValues del metodo useForms
                             //message: "No coinciden las contraseñas"
                         }
                     }
@@ -108,7 +109,8 @@ const Register = () => {
 
                 />
 
-                {errors.repassword && <p>{errors.repassword.message}</p>}
+                {/* {errors.repassword && <p>{errors.repassword.message}</p>} */}
+                <CodeError error={errors.repassword}/>
 
                 <button type="submit">Register</button>
 
